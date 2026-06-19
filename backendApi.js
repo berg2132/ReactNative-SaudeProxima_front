@@ -1,18 +1,8 @@
-// ============================================================
-// ARQUIVO: src/services/backendApi.js
-// FUNÇÃO:  Centraliza todas as chamadas para o nosso próprio
-//          backend Node.js (rodando no Render ou localmente).
-//          Mantém a URL base em um único lugar — para trocar
-//          o endereço, basta alterar a constante API_URL.
-// ============================================================
+
 
 import axios from 'axios';
 
-// ⚠️  IMPORTANTE: troque esta URL pelo endereço do seu backend.
-//    Em desenvolvimento local, use o IP do seu PC na rede Wi-Fi:
-//      ex: 'http://192.168.1.100:3333'
-//    Em produção (Render, Railway, etc.), use a URL pública:
-//      ex: 'https://saude-recife-backend.onrender.com'
+
 export const API_URL = 'https://saude-recife-backend.onrender.com';
 
 // ============================================================
