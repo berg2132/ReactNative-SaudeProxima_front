@@ -1,67 +1,83 @@
 // ============================================================
-// ARQUIVO: App.js
-// FUNÇÃO:  Ponto de entrada do aplicativo React Native.
-//          Configura o sistema de navegação entre telas usando
-//          o react-navigation (Stack Navigator).
-//
-//  FLUXO DE NAVEGAÇÃO:
-//    Login → (Cadastro) → Home → History
+// ARQUIVO: src/services/backendApi.js
+// FUNÇÃO:  Centraliza todas as chamadas para o nosso próprio
+//          backend Node.js (rodando no Render ou localmente).
+//          Mantém a URL base em um único lugar — para trocar
+//          o endereço, basta alterar a constante API_URL.
 // ============================================================
 
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import axios from 'axios';
 
-// Importação das telas do aplicativo
-import LoginScreen from './src/screens/LoginScreen';
-import CadastroScreen from './src/screens/CadastroScreen';
-import HomeScreen from './src/screens/HomeScreen';
-import HistoryScreen from './src/screens/HistoryScreen';
+// ⚠️  IMPORTANTE: troque esta URL pelo endereço do seu backend.
+//    Em desenvolvimento local, use o IP do seu PC na rede Wi-Fi:
+//      ex: 'http://192.168.1.100:3333'
+//    Em produção (Render, Railway, etc.), use a URL pública:
+//      ex: 'https://saude-recife-backend.onrender.com'
+export const API_URL = 'https://saude-recife-backend.onrender.com';
 
-// Cria o navegador de pilha (Stack Navigator)
-const Stack = createNativeStackNavigator();
+// ============================================================
+// Função: listarCheckins
+// Faz GET /checkins → retorna histórico completo do banco.
+// ============================================================
+export const listarCheckins = async () => {
+  try {
+    const resposta = await axios.get(`${API_URL}/checkins`, { timeout: 10000 });
+    return resposta.data; // array de check-ins
+  } catch (error) {
+    console.error('Erro ao listar check-ins:', error.message);
+    throw new Error('Não foi possível carregar o histórico.');
+  }
+};
 
-export default function App() {
-  return (
-    // NavigationContainer é o contêiner raiz — envolve todo o app
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Login"
-        screenOptions={{
-          // Estilo padrão para todos os cabeçalhos do app
-          headerStyle: { backgroundColor: '#1976D2' },
-          headerTintColor: '#fff',
-          headerTitleStyle: { fontWeight: 'bold' },
-        }}
-      >
-        {/* Tela de Login — sem cabeçalho para tela cheia */}
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ headerShown: false }}
-        />
+// ============================================================
+// Função: salvarCheckin
+// Faz POST /checkins → salva um novo check-in com feedback.
+//
+// Parâmetros (objeto):
+//   localNome        — nome da unidade de saúde
+//   latitudeUsuario  — latitude GPS do usuário
+//   longitudeUsuario — longitude GPS do usuário
+//   distrito         — distrito sanitário (opcional)
+//   area             — área de abrangência (opcional)
+//   telefone         — telefone da unidade (opcional)
+//   avaliacao        — nota de 1 a 5 (opcional)
+//   feedback         — comentário textual (opcional)
+// ============================================================
+export const salvarCheckin = async (dados) => {
+  try {
+    const resposta = await axios.post(`${API_URL}/checkins`, dados, { timeout: 10000 });
+    return resposta.data; // documento criado
+  } catch (error) {
+    console.error('Erro ao salvar check-in:', error.message);
+    // Repassa o erro original para o componente tratar (ex: status 400)
+    throw error;
+  }
+};
 
-        {/* Tela de Cadastro — sem cabeçalho */}
-        <Stack.Screen
-          name="Cadastro"
-          component={CadastroScreen}
-          options={{ headerShown: false }}
-        />
+// ============================================================
+// Função: removerCheckin
+// Faz DELETE /checkins/:id → remove um check-in pelo ID.
+// ============================================================
+export const removerCheckin = async (id) => {
+  try {
+    const resposta = await axios.delete(`${API_URL}/checkins/${id}`, { timeout: 10000 });
+    return resposta.data;
+  } catch (error) {
+    console.error('Erro ao remover check-in:', error.message);
+    throw new Error('Não foi possível remover o check-in.');
+  }
+};
 
-        {/* Tela Principal: lista de unidades de saúde próximas */}
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ title: '🏥 Unidades de Saúde - Recife' }}
-        />
+// ============================================================
+// Funções de Usuário
+// ============================================================
 
-        {/* Tela de Histórico: check-ins salvos no banco de dados */}
-        <Stack.Screen
-          name="History"
-          component={HistoryScreen}
-          options={{ title: '📋 Meu Histórico de Check-ins' }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-}
+export const cadastrarUsuario = async ({ nome, email, senha }) => {
+  const resposta = await axios.post(`${API_URL}/usuarios`, { nome, email, senha }, { timeout: 10000 });
+  return resposta.data;
+};
+
+export const loginUsuario = async ({ email, senha }) => {
+  const resposta = await axios.post(`${API_URL}/usuarios/login`, { email, senha }, { timeout: 10000 });
+  return resposta.data;
+};
